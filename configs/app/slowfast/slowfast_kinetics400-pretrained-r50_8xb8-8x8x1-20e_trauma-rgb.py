@@ -46,8 +46,11 @@ model = dict(
         bbox_head=dict(
             type='BBoxHeadAVA',
             in_channels=2304,
-            num_classes=81,
-            multilabel=True,
+            num_classes=18,
+            focal_gamma=2.0,
+            focal_alpha=0.25,
+            topk= (1, 3),
+            multilabel=False,
             dropout_ratio=0.5)),
     data_preprocessor=dict(
         type='mmaction.ActionDataPreprocessor',
@@ -71,20 +74,19 @@ model = dict(
     test_cfg=dict(rcnn=None))
 
 dataset_type = 'AVADataset'
-data_root = 'data/ava/rawframes'
-anno_root = 'data/ava/annotations'
+data_root = 'data/trauma/rawframes'
+anno_root = 'data/trauma/annotations'
 
-ann_file_train = f'{anno_root}/ava_train_v2.1.csv'
-ann_file_val = f'{anno_root}/ava_val_v2.1.csv'
+ann_file_train = f'{anno_root}/train_WNA.csv'
+ann_file_val = f'{anno_root}/train_WNA.csv'
 
-exclude_file_train = f'{anno_root}/ava_train_excluded_timestamps_v2.1.csv'
-exclude_file_val = f'{anno_root}/ava_val_excluded_timestamps_v2.1.csv'
+exclude_file_train = f'{anno_root}/train_excluded.csv'
+exclude_file_val = f'{anno_root}/train_excluded.csv'
 
-label_file = f'{anno_root}/ava_action_list_v2.1_for_activitynet_2018.pbtxt'
+label_file = f'{anno_root}/action_list.pbtxt'
 
-proposal_file_train = (f'{anno_root}/ava_dense_proposals_train.FAIR.'
-                       'recall_93.9.pkl')
-proposal_file_val = f'{anno_root}/ava_dense_proposals_val.FAIR.recall_93.9.pkl'
+proposal_file_train = (f'{anno_root}/dense_proposals.pkl')
+proposal_file_val = f'{anno_root}/dense_proposals.pkl'
 
 file_client_args = dict(io_backend='disk')
 train_pipeline = [
@@ -109,7 +111,7 @@ val_pipeline = [
 
 train_dataloader = dict(
     batch_size=12,
-    num_workers=12,
+    num_workers=14,
     persistent_workers=True,
     sampler=dict(type='DefaultSampler', shuffle=True),
     dataset=dict(
@@ -118,6 +120,8 @@ train_dataloader = dict(
         exclude_file=exclude_file_train,
         pipeline=train_pipeline,
         label_file=label_file,
+        timestamp_start = 0,
+        num_classes = 18,
         proposal_file=proposal_file_train,
         data_prefix=dict(img=data_root)))
 
@@ -132,6 +136,8 @@ val_dataloader = dict(
         exclude_file=exclude_file_val,
         pipeline=val_pipeline,
         label_file=label_file,
+        timestamp_start = 0,
+        num_classes = 18,
         proposal_file=proposal_file_val,
         data_prefix=dict(img=data_root),
         test_mode=True))
@@ -141,31 +147,32 @@ val_evaluator = dict(
     type='AVAMetric',
     ann_file=ann_file_val,
     label_file=label_file,
+    num_classes = 18,
     exclude_file=exclude_file_val)
 test_evaluator = val_evaluator
 
 train_cfg = dict(
-    type='EpochBasedTrainLoop', max_epochs=10, val_begin=1, val_interval=1)
+    type='EpochBasedTrainLoop', max_epochs=20, val_begin=1, val_interval=1)
 val_cfg = dict(type='ValLoop')
 test_cfg = dict(type='TestLoop')
 
 param_scheduler = [
-    dict(type='LinearLR', start_factor=0.001, by_epoch=False, end=10),
+    dict(type='LinearLR', start_factor=0.1, by_epoch=True, begin=0, end=5),
     dict(
         type='MultiStepLR',
         begin=0,
         end=20,
         by_epoch=True,
-        milestones=[1, 6],
+        milestones=[10, 15],
         gamma=0.1)
 ]
 
 optim_wrapper = dict(
-    optimizer=dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.00001),
+    optimizer=dict(type='SGD', lr=0.1, momentum=0.9, weight_decay=0.0001),
     clip_grad=dict(max_norm=40, norm_type=2))
 
 # Default setting for scaling LR automatically
 #   - `enable` means enable scaling LR automatically
 #       or not by default.
 #   - `base_batch_size` = (8 GPUs) x (8 samples per GPU).
-auto_scale_lr = dict(enable=False, base_batch_size=64)
+auto_scale_lr = dict(enable=True, base_batch_size=64)

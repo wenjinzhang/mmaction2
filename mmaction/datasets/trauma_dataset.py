@@ -14,8 +14,8 @@ from .base import BaseActionDataset
 
 
 @DATASETS.register_module()
-class AVADataset(BaseActionDataset):
-    """AVA dataset for spatial temporal detection.
+class TraumaDataset(BaseActionDataset):
+    """Trauma dataset for spatial temporal detection.
 
     Based on official AVA annotation files, the dataset loads raw frames,
     bounding boxes, proposals and applies specified transformations to return
@@ -285,14 +285,12 @@ class AVADataset(BaseActionDataset):
 
         if self.proposals is not None:
             if img_key not in self.proposals:
-                # print("key not in proposals, key is ", img_key)
                 data_info['proposals'] = np.array([[0, 0, 1, 1]])
                 data_info['scores'] = np.array([1])
             else:
                 proposals = self.proposals[img_key]
                 assert proposals.shape[-1] in [4, 5]
                 if proposals.shape[-1] == 5:
-                    # print("thr from proposals", proposals)
                     thr = min(self.person_det_score_thr, max(proposals[:, 4]))
                     positive_inds = (proposals[:, 4] >= thr)
                     proposals = proposals[positive_inds]
