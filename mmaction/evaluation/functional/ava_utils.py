@@ -169,6 +169,13 @@ def get_overlaps_and_scores_box_mode(detected_boxes, detected_scores,
 
 def tpfp_single(tup, threshold=0.5):
     gt_bboxes, gt_labels, bboxes, labels, scores = tup
+    # print("==============================")
+    # print("gt_labels", gt_labels)
+    # print("labels", labels)
+    # print("gt_bboxes", gt_bboxes)
+    # print("bboxes", bboxes)
+    # print("scores", scores)
+    # print("==============================")
     ret_scores, ret_tp_fp_labels = dict(), dict()
     all_labels = list(set(labels))
     for label in all_labels:
@@ -196,6 +203,10 @@ def tpfp_single(tup, threshold=0.5):
                         tp_fp_labels[i] = True
                         is_gt_box_detected[gt_id] = True
         ret_scores[label], ret_tp_fp_labels[label] = score, tp_fp_labels
+    
+    # print("ret_scores", ret_scores)
+    # print("ret_tp_fp_labels", ret_tp_fp_labels)
+
     return ret_scores, ret_tp_fp_labels
 
 
@@ -258,23 +269,32 @@ def ava_eval(result_file,
             scores[k].append(score[k])
             tpfps[k].append(tpfp[k])
 
+    # print("scores", scores)
+    # print("tpfps", tpfps)
+    # print("gt_count", gt_count)
     cls_AP = []
+    cls_AP_F1 = []
     for k in scores:
         scores[k] = np.concatenate(scores[k])
         tpfps[k] = np.concatenate(tpfps[k])
         precision, recall = metrics.compute_precision_recall(
             scores[k], tpfps[k], gt_count[k])
         ap = metrics.compute_average_precision(precision, recall)
+        # print("precision:", precision)
+        # print("recall",recall)
+
+        best_f1, best_prec, best_recall = metrics.compute_optimal_F1_score(precision, recall)
         class_name = [x['name'] for x in categories if x['id'] == k]
         assert len(class_name) == 1
         class_name = class_name[0]
         cls_AP.append((k, class_name, ap))
+        cls_AP_F1.append((k, class_name, ap, best_f1))
     if verbose:
         print_time('Run Evaluator', start)
 
     print('Per-class results: ', flush=True)
-    for k, class_name, ap in cls_AP:
-        print(f'Index: {k}, Action: {class_name}: AP: {ap:.4f};', flush=True)
+    for k, class_name, ap, f1 in cls_AP_F1:
+        print(f'Index: {k}, Action: {class_name}: AP: {ap:.4f}: F1:{f1:.4f};', flush=True)
 
     overall = np.nanmean([x[2] for x in cls_AP])
     person_movement = np.nanmean([x[2] for x in cls_AP if x[0] <= 14])
@@ -294,7 +314,7 @@ def ava_eval(result_file,
     results['person_interaction'] = person_interaction
 
     if verbose:
-        for k, class_name, ap in cls_AP:
-            print(f'Class {class_name} AP: {ap:.4f}', flush=True)
+        for k, class_name, ap, f1 in cls_AP_F1:
+            print(f'Class {class_name} AP: {ap:.4f}: F1:{f1:.4f};', flush=True)
 
     return results

@@ -292,16 +292,23 @@ class AVADataset(BaseActionDataset):
                 proposals = self.proposals[img_key]
                 assert proposals.shape[-1] in [4, 5]
                 if proposals.shape[-1] == 5:
-                    # print("thr from proposals", proposals)
+                    # print("self.person_det_score_thr", self.person_det_score_thr)
+                    # print(f'----> for image:{img_key}, get original box: {len(proposals)}')
+                    # print("orginial boxes", proposals)
                     thr = min(self.person_det_score_thr, max(proposals[:, 4]))
                     positive_inds = (proposals[:, 4] >= thr)
                     proposals = proposals[positive_inds]
                     proposals = proposals[:self.num_max_proposals]
+                    # print(f'----> But only get {len(proposals)}')
+                    # print("new boxes", proposals)
                     data_info['proposals'] = proposals[:, :4]
                     data_info['scores'] = proposals[:, 4]
                 else:
+                    # print(f'----> for image:{img_key}, get original box: {len(proposals)}')
                     proposals = proposals[:self.num_max_proposals]
                     data_info['proposals'] = proposals
+                    # print(f'----> only get {len(proposals)}')
+                    # print("new boxes", proposals)
 
         ann = data_info.pop('ann')
         data_info['gt_bboxes'] = ann['gt_bboxes']

@@ -115,6 +115,24 @@ def compute_average_precision(precision, recall):
         (recall[indices] - recall[indices - 1]) * precision[indices])
     return average_precision
 
+def compute_optimal_F1_score(precision, recall):
+    if precision is None:
+        if recall is not None:
+            raise ValueError('If precision is None, recall must also be None')
+        return np.NAN, np.NAN, np.NAN
+    
+    f1_scores = 2 * (precision * recall) / (precision + recall)
+
+    if np.isnan(f1_scores).all():
+        return np.NAN, np.NAN, np.NAN
+        
+    best_f1_score = np.nanmax(f1_scores)
+    best_f1_index = np.nanargmax(f1_scores)
+    best_precision = precision[best_f1_index]
+    best_recall = recall[best_f1_index]
+    
+    return best_f1_score, best_precision, best_recall
+    
 
 def compute_cor_loc(num_gt_imgs_per_class,
                     num_images_correctly_detected_per_class):
