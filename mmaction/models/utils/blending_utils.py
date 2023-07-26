@@ -1,14 +1,21 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from abc import ABCMeta, abstractmethod
+from functools import partial
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import torch
 import torch.nn.functional as F
+from mmengine.utils import digit_version
 from torch.distributions.beta import Beta
 
 from mmaction.registry import MODELS
 from mmaction.utils import SampleList
+
+if digit_version(torch.__version__) < digit_version('1.8.0'):
+    floor_div = torch.floor_divide
+else:
+    floor_div = partial(torch.div, rounding_mode='floor')
 
 __all__ = ['BaseMiniBatchBlending', 'MixupBlending', 'CutmixBlending']
 
@@ -60,9 +67,13 @@ class BaseMiniBatchBlending(metaclass=ABCMeta):
                 in range [0, 1].
         """
         label = [x.gt_labels.item for x in batch_data_samples]
-        label = torch.tensor(label, dtype=torch.long).to(imgs.device)
-
-        one_hot_label = F.one_hot(label, num_classes=self.num_classes)
+        # single-label classification
+        if label[0].size(0) == 1:
+            label = torch.tensor(label, dtype=torch.long).to(imgs.device)
+            one_hot_label = F.one_hot(label, num_classes=self.num_classes)
+        # multi-label classification
+        else:
+            one_hot_label = torch.stack(label)
 
         mixed_imgs, mixed_label = self.do_blending(imgs, one_hot_label,
                                                    **kwargs)
@@ -145,10 +156,10 @@ class CutmixBlending(BaseMiniBatchBlending):
         cx = torch.randint(w, (1, ))[0]
         cy = torch.randint(h, (1, ))[0]
 
-        bbx1 = torch.clamp(cx - cut_w // 2, 0, w)
-        bby1 = torch.clamp(cy - cut_h // 2, 0, h)
-        bbx2 = torch.clamp(cx + cut_w // 2, 0, w)
-        bby2 = torch.clamp(cy + cut_h // 2, 0, h)
+        bbx1 = torch.clamp(cx - floor_div(cut_w, 2), 0, w)
+        bby1 = torch.clamp(cy - floor_div(cut_h, 2), 0, h)
+        bbx2 = torch.clamp(cx + floor_div(cut_w, 2), 0, w)
+        bby2 = torch.clamp(cy + floor_div(cut_h, 2), 0, h)
 
         return bbx1, bby1, bbx2, bby2
 
