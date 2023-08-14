@@ -78,16 +78,16 @@ dataset_type = 'AVADataset'
 data_root = 'data/trauma/rawframes'
 anno_root = 'data/trauma/annotations'
 
-ann_file_train = f'{anno_root}/trauma_trainV2.csv'
-ann_file_val = f'{anno_root}/trauma_valV2.csv'
+ann_file_train = f'{anno_root}/trauma_train_V2.csv'
+ann_file_val = f'{anno_root}/trauma_val_V2.csv'
 
 exclude_file_train = f'{anno_root}/train_excluded.csv'
 exclude_file_val = f'{anno_root}/train_excluded.csv'
 
 label_file = f'{anno_root}/action_list.pbtxt'
 
-proposal_file_train = (f'{anno_root}/trauma_trainV2.csv.pkl')
-proposal_file_val = f'{anno_root}/trauma_valV2.csv.pkl'
+proposal_file_train = (f'{anno_root}/trauma_train_V2.csv.pkl')
+proposal_file_val = f'{anno_root}/trauma_val_V2.csv.pkl'
 
 file_client_args = dict(io_backend='disk')
 train_pipeline = [

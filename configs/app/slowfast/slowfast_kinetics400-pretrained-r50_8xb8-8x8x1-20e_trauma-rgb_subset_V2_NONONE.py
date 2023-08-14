@@ -43,11 +43,11 @@ model = dict(
             roi_layer_type='RoIAlign',
             output_size=8,
             with_temporal_pool=True,
-            with_global = True),
+            with_global = False),
         bbox_head=dict(
             type='BBoxHeadAVA',
-            in_channels=4608,
-            num_classes=9,
+            in_channels=2304,
+            num_classes=6,
             focal_gamma=2.0,
             focal_alpha=0.25,
             topk= (1, 3),
@@ -122,8 +122,8 @@ train_dataloader = dict(
         pipeline=train_pipeline,
         label_file=label_file,
         timestamp_start = 0,
-        num_classes = 9,
-        custom_classes = [1, 2, 3, 5, 9, 11, 15, 17],
+        num_classes = 6,
+        custom_classes = [3, 5, 9, 11, 17],
         proposal_file=proposal_file_train,
         data_prefix=dict(img=data_root)))
 
@@ -139,8 +139,8 @@ val_dataloader = dict(
         pipeline=val_pipeline,
         label_file=label_file,
         timestamp_start = 0,
-        num_classes = 9,
-        custom_classes = [1, 2, 3, 5, 9, 11, 15, 17],
+        num_classes = 6,
+        custom_classes = [3, 5, 9, 11, 17],
         proposal_file=proposal_file_val,
         data_prefix=dict(img=data_root),
         test_mode=True))
@@ -150,13 +150,13 @@ val_evaluator = dict(
     type='AVAMetric',
     ann_file=ann_file_val,
     label_file=label_file,
-    num_classes = 9,
-    custom_classes = [1, 2, 3, 5, 9, 11, 15, 17],
+    num_classes = 6,
+    custom_classes = [3, 5, 9, 11, 17],
     exclude_file=exclude_file_val)
 test_evaluator = val_evaluator
 
 train_cfg = dict(
-    type='EpochBasedTrainLoop', max_epochs=25, val_begin=1, val_interval=1)
+    type='EpochBasedTrainLoop', max_epochs=35, val_begin=1, val_interval=1)
 val_cfg = dict(type='ValLoop')
 test_cfg = dict(type='TestLoop')
 

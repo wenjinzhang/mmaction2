@@ -30,12 +30,12 @@ nohup bash tools/dist_train.sh configs/app/slowfast/slowfast_kinetics400-pretrai
 nohup bash tools/dist_train.sh configs/app/slowfast/slowfast_kinetics400-pretrained-r50_8xb8-8x8x1-20e_trauma-rgb_subset_global_V2.py \
     2 --seed 0 > log/train_r50_8xb8-8x8x1-20e_trauma_subset_globalV2.txt 2>&1 &
 
+nohup bash tools/dist_train.sh configs/app/slowfast/slowfast_kinetics400-pretrained-r50_8xb8-8x8x1-20e_trauma-rgb_subset_global_V2_NONONE.py 2 \
+    --resume  --seed 0 > log/train_r50_8xb8-8x8x1-20e_trauma_subset_globalV2_NONONE_continue.txt 2>&1 &
 
+nohup bash tools/dist_train.sh configs/app/slowfast/slowfast_kinetics400-pretrained-r50_8xb8-8x8x1-20e_trauma-rgb_subset_V2_NONONE.py 2 \
+    --seed 0 > log/train_r50_8xb8-8x8x1-20e_trauma_subset_V2_NONONE.txt 2>&1 &
 
-
-# grobal_feature map w/o NA
-nohup bash tools/dist_train.sh configs/app/slowfast/slowfast_kinetics400-pretrained-r50_8xb8-8x8x1-20e_trauma-rgb_subset_global_WONA.py \
-    2 --seed 0 > log/train_r50_8xb8-8x8x1-20e_trauma_subset_global_WONA.txt 2>&1 &
 
 # consider global feature map
 nohup bash tools/dist_train.sh configs/app/slowfast/slowfast-acrn_kinetics400-pretrained-r50_8xb8-8x8x1-cosine-10e_trauma-rgb_subset.py \

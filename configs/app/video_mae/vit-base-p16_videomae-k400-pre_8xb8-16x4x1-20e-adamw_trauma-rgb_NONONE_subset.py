@@ -1,41 +1,27 @@
-_base_ = '../../_base_/default_runtime.py'
+_base_ = ['../../_base_/default_runtime.py']
 
-url = ('https://download.openmmlab.com/mmaction/recognition/slowfast/'
-       'slowfast_r50_8x8x1_256e_kinetics400_rgb/'
-       'slowfast_r50_8x8x1_256e_kinetics400_rgb_20200716-73547d2b.pth')
+url = (
+    'https://download.openmmlab.com/mmaction/v1.0/recognition/videomae/'
+    'vit-base-p16_videomae-k400-pre_16x4x1_kinetics-400_20221013-860a3cd3.pth')
 
 model = dict(
     type='FastRCNN',
     _scope_='mmdet',
     init_cfg=dict(type='Pretrained', checkpoint=url),
     backbone=dict(
-        type='mmaction.ResNet3dSlowFast',
-        resample_rate=4,
-        speed_ratio=4,
-        channel_ratio=8,
-        pretrained=None,
-        slow_pathway=dict(
-            type='resnet3d',
-            depth=50,
-            pretrained=None,
-            lateral=True,
-            conv1_kernel=(1, 7, 7),
-            dilations=(1, 1, 1, 1),
-            conv1_stride_t=1,
-            pool1_stride_t=1,
-            inflate=(0, 0, 1, 1),
-            spatial_strides=(1, 2, 2, 1),
-            fusion_kernel=7),
-        fast_pathway=dict(
-            type='resnet3d',
-            depth=50,
-            pretrained=None,
-            lateral=False,
-            base_channels=8,
-            conv1_kernel=(5, 7, 7),
-            conv1_stride_t=1,
-            pool1_stride_t=1,
-            spatial_strides=(1, 2, 2, 1))),
+        type='mmaction.VisionTransformer',
+        img_size=224,
+        patch_size=16,
+        embed_dims=768,
+        depth=12,
+        num_heads=12,
+        mlp_ratio=4,
+        qkv_bias=True,
+        num_frames=16,
+        norm_cfg=dict(type='LN', eps=1e-6),
+        drop_path_rate=0.2,
+        use_mean_pooling=False,
+        return_feat_map=True),
     roi_head=dict(
         type='AVARoIHead',
         bbox_roi_extractor=dict(
@@ -43,18 +29,19 @@ model = dict(
             roi_layer_type='RoIAlign',
             output_size=8,
             with_temporal_pool=True,
-            with_global = True),
+            with_global=False),
         bbox_head=dict(
             type='BBoxHeadAVA',
-            in_channels=4608,
-            num_classes=9,
+            in_channels=768,
+            num_classes=6,
             focal_gamma=2.0,
             focal_alpha=0.25,
             topk= (1, 3),
             multilabel=True,
             dropout_ratio=0.5)),
     data_preprocessor=dict(
-        type='mmaction.ActionDataPreprocessor',
+        type='ActionDataPreprocessor',
+        _scope_='mmaction',
         mean=[123.675, 116.28, 103.53],
         std=[58.395, 57.12, 57.375],
         format_shape='NCTHW'),
@@ -89,30 +76,28 @@ label_file = f'{anno_root}/action_list.pbtxt'
 proposal_file_train = (f'{anno_root}/trauma_trainV2.csv.pkl')
 proposal_file_val = f'{anno_root}/trauma_valV2.csv.pkl'
 
-file_client_args = dict(io_backend='disk')
 train_pipeline = [
-    dict(type='SampleAVAFrames', clip_len=32, frame_interval=2),
-    dict(type='RawFrameDecode', **file_client_args),
+    dict(type='SampleAVAFrames', clip_len=16, frame_interval=4),
+    dict(type='RawFrameDecode'),
     dict(type='RandomRescale', scale_range=(256, 320)),
     dict(type='RandomCrop', size=256),
     dict(type='Flip', flip_ratio=0.5),
     dict(type='FormatShape', input_format='NCTHW', collapse=True),
     dict(type='PackActionInputs')
 ]
-
 # The testing is w/o. any cropping / flipping
 val_pipeline = [
     dict(
-        type='SampleAVAFrames', clip_len=32, frame_interval=2, test_mode=True),
-    dict(type='RawFrameDecode', **file_client_args),
+        type='SampleAVAFrames', clip_len=16, frame_interval=4, test_mode=True),
+    dict(type='RawFrameDecode'),
     dict(type='Resize', scale=(-1, 256)),
     dict(type='FormatShape', input_format='NCTHW', collapse=True),
     dict(type='PackActionInputs')
 ]
 
 train_dataloader = dict(
-    batch_size=12,
-    num_workers=16,
+    batch_size=4,
+    num_workers=8,
     persistent_workers=True,
     sampler=dict(type='DefaultSampler', shuffle=True),
     dataset=dict(
@@ -122,8 +107,8 @@ train_dataloader = dict(
         pipeline=train_pipeline,
         label_file=label_file,
         timestamp_start = 0,
-        num_classes = 9,
-        custom_classes = [1, 2, 3, 5, 9, 11, 15, 17],
+        num_classes = 6,
+        custom_classes = [3, 5, 9, 11, 17],
         proposal_file=proposal_file_train,
         data_prefix=dict(img=data_root)))
 
@@ -139,8 +124,8 @@ val_dataloader = dict(
         pipeline=val_pipeline,
         label_file=label_file,
         timestamp_start = 0,
-        num_classes = 9,
-        custom_classes = [1, 2, 3, 5, 9, 11, 15, 17],
+        num_classes = 6,
+        custom_classes = [3, 5, 9, 11, 17],
         proposal_file=proposal_file_val,
         data_prefix=dict(img=data_root),
         test_mode=True))
@@ -150,30 +135,45 @@ val_evaluator = dict(
     type='AVAMetric',
     ann_file=ann_file_val,
     label_file=label_file,
-    num_classes = 9,
-    custom_classes = [1, 2, 3, 5, 9, 11, 15, 17],
+    num_classes = 6,
+    custom_classes = [3, 5, 9, 11, 17],
     exclude_file=exclude_file_val)
 test_evaluator = val_evaluator
 
 train_cfg = dict(
-    type='EpochBasedTrainLoop', max_epochs=25, val_begin=1, val_interval=1)
+    type='EpochBasedTrainLoop', max_epochs=55, val_begin=1, val_interval=1)
 val_cfg = dict(type='ValLoop')
 test_cfg = dict(type='TestLoop')
 
 param_scheduler = [
-    dict(type='LinearLR', start_factor=0.1, by_epoch=True, begin=0, end=5),
     dict(
-        type='MultiStepLR',
-        begin=0,
-        end=20,
+        type='LinearLR',
+        start_factor=0.1,
         by_epoch=True,
-        milestones=[10, 15],
-        gamma=0.1)
+        begin=0,
+        end=5,
+        convert_to_iter_based=True),
+    dict(
+        type='CosineAnnealingLR',
+        T_max=50,
+        eta_min=0,
+        by_epoch=True,
+        begin=5,
+        end=55,
+        convert_to_iter_based=True)
 ]
 
 optim_wrapper = dict(
-    optimizer=dict(type='SGD', lr=0.1, momentum=0.9, weight_decay=0.0001),
+    optimizer=dict(type='AdamW', lr=1.25e-4, weight_decay=0.05),
+    constructor='LearningRateDecayOptimizerConstructor',
+    paramwise_cfg={
+        'decay_rate': 0.75,
+        'decay_type': 'layer_wise',
+        'num_layers': 12
+    },
     clip_grad=dict(max_norm=40, norm_type=2))
+
+default_hooks = dict(checkpoint=dict(max_keep_ckpts=2))
 
 # Default setting for scaling LR automatically
 #   - `enable` means enable scaling LR automatically
