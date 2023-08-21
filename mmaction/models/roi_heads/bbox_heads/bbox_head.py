@@ -80,6 +80,7 @@ class BBoxHeadAVA(nn.Module):
             dropout_before_pool: bool = True,
             topk: Union[int, Tuple[int]] = (3, 5),
             multilabel: bool = True,
+            validlabel_idx:int = 1,
             mlp_head: bool = False) -> None:
         super(BBoxHeadAVA, self).__init__()
         assert temporal_pool_type in ['max', 'avg']
@@ -94,7 +95,7 @@ class BBoxHeadAVA(nn.Module):
         self.dropout_before_pool = dropout_before_pool
 
         self.multilabel = multilabel
-
+        self.validlabel_idx = validlabel_idx
         self.focal_gamma = focal_gamma
         self.focal_alpha = focal_alpha
 
@@ -252,9 +253,9 @@ class BBoxHeadAVA(nn.Module):
         # Only use the cls_score
         if cls_score is not None:
             # wenjin: consider negative loss
-            labels = labels[:, 0:]  # Get valid labels (ignore first one)
+            labels = labels[:, self.validlabel_idx:]  # Get valid labels (ignore first one)
             pos_inds = torch.sum(labels, dim=-1) > 0
-            cls_score = cls_score[pos_inds, 0:]
+            cls_score = cls_score[pos_inds, self.validlabel_idx:]
             labels = labels[pos_inds]
 
             # Compute First Recall/Precisions

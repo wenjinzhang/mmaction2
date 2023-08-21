@@ -37,6 +37,7 @@ model = dict(
             focal_gamma=2.0,
             focal_alpha=0.25,
             topk= (1, 3),
+            validlabel_idx=1,
             multilabel=True,
             dropout_ratio=0.5)),
     data_preprocessor=dict(
