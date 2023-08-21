@@ -38,8 +38,15 @@ nohup bash tools/dist_train.sh configs/app/video_mae/vit-large-p16_videomae-k400
 
 
 # box feature only
-nohup bash tools/dist_train.sh configs/app/video_mae/vit-base-p16_videomae-k400-pre_8xb8-16x4x1-20e-adamw_trauma-rgb_NONONE_subset.py 2 \
-     --cfg-options randomness.seed=0 > log/train_vit-base-p16_trauma_videomae_NONONE_subset.txt 2>&1 &
+nohup bash tools/dist_train.sh configs/app/video_mae/vit-large-p16_videomae-k400-pre_8xb8-16x4x1-20e-adamw_trauma-rgb_subset.py 2 \
+     --cfg-options randomness.seed=0 > log/train_vit-base-p16_trauma_videomae_subset.txt 2>&1 &
 
+
+nohup bash tools/dist_train.sh configs/app/video_mae/vit-large-p16_videomae-k400-pre_8xb8-16x4x1-20e-adamw_trauma-rgb_subset_N0.py 2 \
+    --resume work_dirs/vit-large-p16_videomae-k400-pre_8xb8-16x4x1-20e-adamw_trauma-rgb_subset/best_mAP_overall_epoch_19.pth --cfg-options randomness.seed=0 > log/train_vit-base-p16_trauma_videomae_subset_N0.txt 2>&1 &
 
 # check model
+
+
+python tools/test.py configs/app/video_mae/vit-large-p16_videomae-k400-pre_8xb8-16x4x1-20e-adamw_trauma-rgb_subset.py \
+work_dirs/vit-large-p16_videomae-k400-pre_8xb8-16x4x1-20e-adamw_trauma-rgb_subset/epoch_14.pth --dump log/result.pkl

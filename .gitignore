@@ -113,7 +113,8 @@ venv.bak/
 .mypy_cache/
 
 # custom
-/data
+/data/*/rawframes
+/data/*/videos
 .vscode
 .idea
 *.pkl
@@ -149,6 +150,3 @@ mmaction/tools/*
 !demo/*.ipynb
 !projects/stad_tutorial/*.ipynb
 mmaction/.mim
-
-log/*
-log/

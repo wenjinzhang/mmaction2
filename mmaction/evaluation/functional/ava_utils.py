@@ -303,15 +303,15 @@ def ava_eval(result_file,
 
     print('Overall Results: ', flush=True)
     print(f'Overall mAP: {overall:.4f}', flush=True)
-    print(f'Person Movement mAP: {person_movement:.4f}', flush=True)
-    print(f'Object Manipulation mAP: {object_manipulation:.4f}', flush=True)
-    print(f'Person Interaction mAP: {person_interaction:.4f}', flush=True)
+    # print(f'Person Movement mAP: {person_movement:.4f}', flush=True)
+    # print(f'Object Manipulation mAP: {object_manipulation:.4f}', flush=True)
+    # print(f'Person Interaction mAP: {person_interaction:.4f}', flush=True)
 
     results = {}
     results['overall'] = overall
-    results['person_movement'] = person_movement
-    results['object_manipulation'] = object_manipulation
-    results['person_interaction'] = person_interaction
+    # results['person_movement'] = person_movement
+    # results['object_manipulation'] = object_manipulation
+    # results['person_interaction'] = person_interaction
 
     if verbose:
         for k, class_name, ap, f1 in cls_AP_F1:

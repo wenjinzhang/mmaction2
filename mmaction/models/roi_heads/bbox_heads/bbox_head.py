@@ -251,9 +251,10 @@ class BBoxHeadAVA(nn.Module):
         losses = dict()
         # Only use the cls_score
         if cls_score is not None:
-            labels = labels[:, 1:]  # Get valid labels (ignore first one)
+            # wenjin: consider negative loss
+            labels = labels[:, 0:]  # Get valid labels (ignore first one)
             pos_inds = torch.sum(labels, dim=-1) > 0
-            cls_score = cls_score[pos_inds, 1:]
+            cls_score = cls_score[pos_inds, 0:]
             labels = labels[pos_inds]
 
             # Compute First Recall/Precisions

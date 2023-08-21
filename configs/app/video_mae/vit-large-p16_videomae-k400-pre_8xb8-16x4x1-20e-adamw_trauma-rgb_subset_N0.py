@@ -37,7 +37,7 @@ model = dict(
             focal_gamma=2.0,
             focal_alpha=0.25,
             topk= (1, 3),
-            multilabel=True,
+            multilabel=False,
             dropout_ratio=0.5)),
     data_preprocessor=dict(
         type='ActionDataPreprocessor',
@@ -65,15 +65,15 @@ dataset_type = 'AVADataset'
 data_root = 'data/trauma/rawframes'
 anno_root = 'data/trauma/annotations'
 
-ann_file_train = f'{anno_root}/trauma_trainV2.csv'
-ann_file_val = f'{anno_root}/trauma_valV2.csv'
+ann_file_train = f'{anno_root}/trauma_trainV2_N0.csv'
+ann_file_val = f'{anno_root}/trauma_valV2_N0.csv'
 
 exclude_file_train = f'{anno_root}/trauma_trainV2_excluded.csv'
 exclude_file_val = f'{anno_root}/trauma_valV2_excluded.csv'
 
 label_file = f'{anno_root}/action_list.pbtxt'
 
-proposal_file_train = (f'{anno_root}/trauma_valV2.csv.pkl')
+proposal_file_train = (f'{anno_root}/trauma_trainV2.csv.pkl')
 proposal_file_val = f'{anno_root}/trauma_valV2.csv.pkl'
 
 train_pipeline = [
@@ -141,7 +141,7 @@ val_evaluator = dict(
 test_evaluator = val_evaluator
 
 train_cfg = dict(
-    type='EpochBasedTrainLoop', max_epochs=30, val_begin=1, val_interval=1)
+    type='EpochBasedTrainLoop', max_epochs=40, val_begin=1, val_interval=1)
 val_cfg = dict(type='ValLoop')
 test_cfg = dict(type='TestLoop')
 
@@ -155,11 +155,11 @@ param_scheduler = [
         convert_to_iter_based=True),
     dict(
         type='CosineAnnealingLR',
-        T_max=25,
+        T_max=20,
         eta_min=0,
         by_epoch=True,
-        begin=5,
-        end=30,
+        begin=20,
+        end=40,
         convert_to_iter_based=True)
 ]
 

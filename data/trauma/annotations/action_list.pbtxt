@@ -1,0 +1,68 @@
+item {
+  name: "None"
+  id: 1
+}
+item {
+  name: "Active CPR"
+  id: 2
+}
+item {
+  name: "C-collar placement"
+  id: 3
+}
+item {
+  name: "C-collar removal"
+  id: 4
+}
+item {
+  name: "IV/IO placement"
+  id: 5
+}
+item {
+  name: "IV-flush"
+  id: 6
+}
+item {
+  name: "IV-blood draw"
+  id: 7
+}
+item {
+  name: "IV-medication"
+  id: 8
+}
+item {
+  name: "Log roll"
+  id: 9
+}
+item {
+  name: "Fluid/Blood infusion"
+  id: 10
+}
+item {
+  name: "Warm blanket"
+  id: 11
+}
+item {
+  name: "O2-BVM"
+  id: 12
+}
+item {
+  name: "O2-NRB"
+  id: 13
+}
+item {
+  name: "O2-NC"
+  id: 14
+}
+item {
+  name: "O2-ventilator"
+  id: 15
+}
+item {
+  name: "O2-Bag-ventilation-i"
+  id: 16
+}
+item {
+  name: "Temperature"
+  id: 17
+}
